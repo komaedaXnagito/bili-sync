@@ -18,6 +18,14 @@ async def download_content(url: str, path: Path) -> None:
                 return
             await f.write(chunk)
 
+async def acopy(source:Path,target:Path )->bool:
+    async with aiofiles.open(source, 'rb') as source_file:
+        async with aiofiles.open(target, 'wb') as destination_file:
+            while True:
+                chunk = await source_file.read(8192)  # 读取8KB的数据块
+                if not chunk:
+                    break
+                await destination_file.write(chunk)
 
 async def aexists(path: Path) -> bool:
     return await exists(path)
