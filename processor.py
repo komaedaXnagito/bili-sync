@@ -11,9 +11,9 @@ from tortoise.connection import connections
 from constants import FFMPEG_COMMAND, MediaStatus, MediaType
 from credential import credential
 from models import FavoriteItem, FavoriteList, Upper
-from nfo import Actor, EpisodeInfo, TvShowInfo,TVEpisodeInfo
+from nfo import Actor, EpisodeInfo, TvShowInfo, TVEpisodeInfo
 from settings import settings
-from utils import aexists, amakedirs, client, download_content,acopy
+from utils import aexists, amakedirs, client, download_content, acopy
 
 anchor = datetime.date.today()
 
@@ -152,12 +152,12 @@ async def process_favorite(favorite_id: int) -> None:
 
 @concurrent_decorator(4)
 async def process_favorite_item(
-    fav_item: FavoriteItem,
-    process_poster=True,
-    process_video=True,
-    process_nfo=True,
-    process_upper=True,
-    process_subtitle=True,
+        fav_item: FavoriteItem,
+        process_poster=True,
+        process_video=True,
+        process_nfo=True,
+        process_upper=True,
+        process_subtitle=True,
 ) -> None:
     logger.info("Start to process video {} {}", fav_item.bvid, fav_item.name)
     if fav_item.type != MediaType.VIDEO:
@@ -182,10 +182,10 @@ async def process_favorite_item(
     if process_upper:
         try:
             if not all(
-                await asyncio.gather(
-                    aexists(fav_item.upper.thumb_path),
-                    aexists(fav_item.upper.meta_path),
-                )
+                    await asyncio.gather(
+                        aexists(fav_item.upper.thumb_path),
+                        aexists(fav_item.upper.meta_path),
+                    )
             ):
                 await amakedirs(fav_item.upper.thumb_path.parent, exist_ok=True)
                 await asyncio.gather(
@@ -232,8 +232,8 @@ async def process_favorite_item(
                         ],
                         tags=fav_item.tags,
                         bvid=fav_item.bvid,
-                        aired=fav_item.ctime,).write_nfo(tv_show_nfo)
-                    
+                        aired=fav_item.ctime, ).write_nfo(tv_show_nfo)
+
                 if not await aexists(season_nfo):
                     await TvShowInfo(
                         title=fav_item.name,
@@ -246,10 +246,10 @@ async def process_favorite_item(
                         ],
                         tags=fav_item.tags,
                         bvid=fav_item.bvid,
-                        aired=fav_item.ctime,).write_nfo(season_nfo)
+                        aired=fav_item.ctime, ).write_nfo(season_nfo)
 
-                for i,p in enumerate(pages):
-                    ep = i+1
+                for i, p in enumerate(pages):
+                    ep = i + 1
                     tv_nfo_path = tv_season_folder / f"{fav_item.nfo_path.stem} - S01E{ep:02d} - 第{ep}集{fav_item.nfo_path.suffix}"
 
                     if not await aexists(tv_nfo_path):
@@ -273,7 +273,7 @@ async def process_favorite_item(
                             fav_item.bvid,
                             p['cid'],
                             fav_item.name,
-                        )   
+                        )
             else:
                 if not await aexists(fav_item.nfo_path):
                     await EpisodeInfo(
@@ -328,7 +328,7 @@ async def process_favorite_item(
                         fav_item.bvid,
                         fav_item.name,
                     )
-                
+
                 if not await aexists(tv_thumb):
                     try:
                         await acopy(tv_poster, tv_thumb)
@@ -361,8 +361,8 @@ async def process_favorite_item(
                         fav_item.name,
                     )
 
-                for i,p in enumerate(pages):
-                    ep = i+1
+                for i, p in enumerate(pages):
+                    ep = i + 1
                     if 'first_frame' not in p:
                         continue
                     frame_url = p['first_frame']
@@ -372,7 +372,7 @@ async def process_favorite_item(
                         suffix = frame_url[last_dot_index + 1:]
                     else:
                         suffix = ".jpg"
-                    
+
                     tv_thumb_path = tv_season_folder / f"{fav_item.nfo_path.stem} - S01E{ep:02d} - 第{ep}集-thumb.{suffix}"
 
                     if not await aexists(tv_thumb_path):
@@ -383,7 +383,7 @@ async def process_favorite_item(
                             fav_item.bvid,
                             p['cid'],
                             fav_item.name,
-                        )   
+                        )
 
             else:
                 if not await aexists(fav_item.poster_path):
@@ -415,8 +415,8 @@ async def process_favorite_item(
                 await amakedirs(tv_folder, exist_ok=True)
                 await amakedirs(tv_season_folder, exist_ok=True)
 
-                for i,p in enumerate(pages):
-                    ep = i+1
+                for i, p in enumerate(pages):
+                    ep = i + 1
                     subtitle_path = tv_season_folder / f"{fav_item.bvid} - S01E{ep:02d} - 第{ep}集.zh-CN.default.ass"
 
                     if not await aexists(subtitle_path):
@@ -467,8 +467,8 @@ async def process_favorite_item(
     if process_video:
         try:
             if is_tv:
-                for i,p in enumerate(pages):
-                    ep = i+1
+                for i, p in enumerate(pages):
+                    ep = i + 1
                     video_path = tv_season_folder / f"{fav_item.bvid} - S01E{ep:02d} - 第{ep}集{fav_item.video_path.suffix}"
                     temp_video_path = video_path.with_suffix(f"{video_path.suffix}.tmp")
                     temp_audio_path = video_path.with_suffix(f"{video_path.suffix}.audio.tmp")
@@ -484,7 +484,12 @@ async def process_favorite_item(
                         detector = video.VideoDownloadURLDataDetecter(
                             await v.get_download_url(cid=p['cid'])
                         )
-                        streams = detector.detect_best_streams()
+                        logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
+                        streams = detector.detect_best_streams(
+                            codecs=(
+                                settings.videoDownloadConfig.codec if len(settings.videoDownloadConfig.codec) > 0 else [
+                                    VideoCodecs.AV1, VideoCodecs.AVC, VideoCodecs.HEV])
+                        )
                         if detector.check_flv_stream():
                             await download_content(
                                 streams[0].url, temp_video_path
@@ -538,7 +543,12 @@ async def process_favorite_item(
                     detector = video.VideoDownloadURLDataDetecter(
                         await v.get_download_url(page_index=0)
                     )
-                    streams = detector.detect_best_streams()
+                    logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
+                    streams = detector.detect_best_streams(
+                        codecs=(
+                            settings.videoDownloadConfig.codec if len(settings.videoDownloadConfig.codec) > 0 else [
+                                VideoCodecs.AV1, VideoCodecs.AVC, VideoCodecs.HEV])
+                    )
                     if detector.check_flv_stream():
                         await download_content(
                             streams[0].url, fav_item.tmp_video_path

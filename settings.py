@@ -19,6 +19,13 @@ class SubtitleConfig(DataClassJsonMixin):
 
 
 @dataclass
+class VideoDownloadConfig(DataClassJsonMixin):
+    dataclass_json_config = {"undefined": Undefined.EXCLUDE}
+
+    codec: list = []
+
+
+@dataclass
 class Config(DataClassJsonMixin):
     dataclass_json_config = {"undefined": Undefined.EXCLUDE}
 
@@ -30,6 +37,7 @@ class Config(DataClassJsonMixin):
     interval: int = 20
     path_mapper: dict[int, str] = field(default_factory=dict)
     subtitle: SubtitleConfig = field(default_factory=SubtitleConfig)
+    videoDownloadConfig: VideoDownloadConfig = field(default_factory=VideoDownloadConfig)
 
     def validate(self) -> Self:
         """所有值必须被设置"""
