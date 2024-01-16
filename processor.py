@@ -5,6 +5,7 @@ from asyncio.subprocess import DEVNULL
 
 from bilibili_api import ass, favorite_list, video
 from bilibili_api.exceptions import ResponseCodeException
+from bilibili_api.video import VideoCodecs
 from loguru import logger
 from tortoise.connection import connections
 
@@ -465,6 +466,11 @@ async def process_favorite_item(
                 fav_item.name,
             )
     if process_video:
+        logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
+        if len(settings.videoDownloadConfig.codec) > 0:
+            codec = list(map(lambda x:VideoCodecs[x],settings.videoDownloadConfig.codec))
+        else:
+            codec = [VideoCodecs.AV1,VideoCodecs.AVC,VideoCodecs.HEV]
         try:
             if is_tv:
                 for i, p in enumerate(pages):
@@ -484,11 +490,9 @@ async def process_favorite_item(
                         detector = video.VideoDownloadURLDataDetecter(
                             await v.get_download_url(cid=p['cid'])
                         )
-                        logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
+
                         streams = detector.detect_best_streams(
-                            codecs=(
-                                settings.videoDownloadConfig.codec if len(settings.videoDownloadConfig.codec) > 0 else [
-                                    VideoCodecs.AV1, VideoCodecs.AVC, VideoCodecs.HEV])
+                            codecs=codec
                         )
                         if detector.check_flv_stream():
                             await download_content(
@@ -543,11 +547,8 @@ async def process_favorite_item(
                     detector = video.VideoDownloadURLDataDetecter(
                         await v.get_download_url(page_index=0)
                     )
-                    logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
                     streams = detector.detect_best_streams(
-                        codecs=(
-                            settings.videoDownloadConfig.codec if len(settings.videoDownloadConfig.codec) > 0 else [
-                                VideoCodecs.AV1, VideoCodecs.AVC, VideoCodecs.HEV])
+                        codecs=codec
                     )
                     if detector.check_flv_stream():
                         await download_content(

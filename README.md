@@ -21,6 +21,31 @@
 
 对于配置文件的前五项，请参考[凭据获取流程](https://nemo2011.github.io/bilibili-api/#/get-credential)。
 
+可以执行如下代码快速获取部分凭据
+```javascript
+function getCookie(cname)
+{
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0; i<ca.length; i++) 
+  {
+    var c = ca[i].trim();
+    if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+  }
+  return "";
+}
+const data = {
+    'bili_jct':getCookie('bili_jct'),
+   'buvid3':getCookie('buvid3'),
+   'dedeuserid':getCookie('DedeUserID'),
+   'ac_time_value':localStorage.getItem('ac_time_value')
+}
+const str = JSON.stringify(data,null,2)
+console.log(
+    str.substring(2,str.length-2)+','
+)
+```
+
 ```python
 @dataclass
 class SubtitleConfig(DataClassJsonMixin):

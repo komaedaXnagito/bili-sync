@@ -22,7 +22,7 @@ class SubtitleConfig(DataClassJsonMixin):
 class VideoDownloadConfig(DataClassJsonMixin):
     dataclass_json_config = {"undefined": Undefined.EXCLUDE}
 
-    codec: list = []
+    codec: list[str] = field(default_factory=lambda:[])
 
 
 @dataclass
