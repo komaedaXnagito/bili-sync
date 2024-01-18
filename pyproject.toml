@@ -80,3 +80,8 @@ filename = "pyproject.toml"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "aliyun"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
