@@ -5,5 +5,6 @@ git reset --hard origin/$BILI_SYNC_VERSION
 git submodule update --init --recursive
 # 安装依赖
 poetry install --only main --no-root
+python entry.py
 # 修复权限
 #chown -R nt:nt /$WORKDIR
