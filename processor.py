@@ -453,7 +453,7 @@ async def process_favorite_item(
                 fav_item.name,
             )
     if process_video:
-        logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
+        logger.info(f"Video codec 2 = {settings.videoDownloadConfig.codec}")
         if len(settings.videoDownloadConfig.codec) > 0:
             codec = list(map(lambda x: VideoCodecs[x], settings.videoDownloadConfig.codec))
         else:
