@@ -32,6 +32,6 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/re
         /root/.cache \
         /tmp/*
 
-ENTRYPOINT ["tini","sh","/app/start_init.sh","&&","tini","python","entry.py"]
+ENTRYPOINT ["sh","/app/start_init.sh","&&","tini","python","entry.py"]
 
 VOLUME [ "/config/config", "/config/data", "/config/thumb", "/Videos/Bilibilis" ]
