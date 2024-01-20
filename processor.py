@@ -14,9 +14,18 @@ from credential import credential
 from models import FavoriteItem, FavoriteList, Upper
 from nfo import Actor, EpisodeInfo, TvShowInfo, TVEpisodeInfo
 from settings import settings
-from utils import aexists, amakedirs, client, download_content, acopy
+from utils import aexists, amakedirs, client, download_content, acopy, ahlink
 
 anchor = datetime.date.today()
+
+tv_links = (
+    'background',
+    'banner',
+    'fanart',
+    'logo',
+    'thumb',
+    'season01-poster'
+)
 
 
 async def cleanup() -> None:
@@ -311,8 +320,6 @@ async def process_favorite_item(
                 await amakedirs(tv_season_folder, exist_ok=True)
 
                 tv_poster = tv_folder / f'poster{fav_item.poster_path.suffix}'
-                tv_thumb = tv_folder / f'thumb{fav_item.poster_path.suffix}'
-                season_poster = tv_folder / f'season01-poster{fav_item.poster_path.suffix}'
 
                 if not await aexists(tv_poster):
                     try:
@@ -330,37 +337,18 @@ async def process_favorite_item(
                         fav_item.name,
                     )
 
-                if not await aexists(tv_thumb):
-                    try:
-                        await acopy(tv_poster, tv_thumb)
-                    except Exception:
-                        logger.exception(
-                            "Failed to download poster of video {} {}",
-                            fav_item.bvid,
-                            fav_item.name,
-                        )
-                else:
-                    logger.info(
-                        "Poster of {} {} already exists, skipped.",
-                        fav_item.bvid,
-                        fav_item.name,
-                    )
-
-                if not await aexists(season_poster):
-                    try:
-                        await acopy(tv_poster, season_poster)
-                    except Exception:
-                        logger.exception(
-                            "Failed to download poster of video {} {}",
-                            fav_item.bvid,
-                            fav_item.name,
-                        )
-                else:
-                    logger.info(
-                        "Poster of {} {} already exists, skipped.",
-                        fav_item.bvid,
-                        fav_item.name,
-                    )
+                if await aexists(tv_poster):
+                    for link in tv_links:
+                        target = tv_folder / f'{link}{fav_item.poster_path.suffix}'
+                        try:
+                            await ahlink(tv_poster,target)
+                        except Exception:
+                            logger.exception(
+                                "Failed to link {} of video {} {}",
+                                link,
+                                fav_item.bvid,
+                                fav_item.name,
+                            )
 
                 for i, p in enumerate(pages):
                     ep = i + 1
@@ -368,7 +356,6 @@ async def process_favorite_item(
                         continue
                     frame_url = p['first_frame']
                     last_dot_index = frame_url.rfind('.')
-                    suffix = ''
                     if last_dot_index != -1:
                         suffix = frame_url[last_dot_index + 1:]
                     else:
@@ -468,9 +455,9 @@ async def process_favorite_item(
     if process_video:
         logger.info(f"Video codec = {settings.videoDownloadConfig.codec}")
         if len(settings.videoDownloadConfig.codec) > 0:
-            codec = list(map(lambda x:VideoCodecs[x],settings.videoDownloadConfig.codec))
+            codec = list(map(lambda x: VideoCodecs[x], settings.videoDownloadConfig.codec))
         else:
-            codec = [VideoCodecs.AV1,VideoCodecs.AVC,VideoCodecs.HEV]
+            codec = [VideoCodecs.AV1, VideoCodecs.AVC, VideoCodecs.HEV]
         try:
             if is_tv:
                 for i, p in enumerate(pages):

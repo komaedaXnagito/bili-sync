@@ -3,7 +3,7 @@ from pathlib import Path
 import aiofiles
 import httpx
 from aiofiles.base import AiofilesContextManager
-from aiofiles.os import makedirs, remove
+from aiofiles.os import makedirs, remove, link
 from aiofiles.ospath import exists
 from aiofiles.threadpool.text import AsyncTextIOWrapper
 from bilibili_api import HEADERS
@@ -18,7 +18,8 @@ async def download_content(url: str, path: Path) -> None:
                 return
             await f.write(chunk)
 
-async def acopy(source:Path,target:Path )->bool:
+
+async def acopy(source: Path, target: Path) -> None:
     async with aiofiles.open(source, 'rb') as source_file:
         async with aiofiles.open(target, 'wb') as destination_file:
             while True:
@@ -26,6 +27,14 @@ async def acopy(source:Path,target:Path )->bool:
                 if not chunk:
                     break
                 await destination_file.write(chunk)
+
+
+async def ahlink(source: Path, target: Path) -> None:
+    try:
+        await link(source, target)
+    except OSError as e:
+        print(f"Error creating hard link: {e}")
+
 
 async def aexists(path: Path) -> bool:
     return await exists(path)
@@ -36,7 +45,7 @@ async def amakedirs(path: Path, exist_ok=False) -> None:
 
 
 def aopen(
-    path: Path, mode: str = "r", **kwargs
+        path: Path, mode: str = "r", **kwargs
 ) -> AiofilesContextManager[None, None, AsyncTextIOWrapper]:
     return aiofiles.open(path, mode, **kwargs)
 
