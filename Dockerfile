@@ -10,7 +10,7 @@ ENV LANG=zh_CN.UTF-8 \
     WORKDIR="/app" \
     CONFIG_PATH="/config/config" \
     DATA_PATH="/config/data" \
-    THUMB_PATH="/config/thumb" \
+    THUMB_PATH="/config/thumb"
 
 WORKDIR ${WORKDIR}
 
